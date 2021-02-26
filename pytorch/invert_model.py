@@ -29,7 +29,7 @@ parser.add_argument('--opt', type=str, default='adam', choices=['sgd', 'adam'],
     help='Optimizer to use in projected gradient descent')
 parser.add_argument('--lr', type=float, default=1e-2,
     help='learning rate')
-parser.add_argument('--lr_schedule', type=str, default='lineardecay', choices=['fixed', 'linear1cycledrop', 'linear1cycle'],
+parser.add_argument('--lr_schedule', type=str, default='lineardecay', choices=['lineardecay', 'fixed', 'linear1cycledrop', 'linear1cycle'],
     help='learning rate schedule')
 args = parser.parse_args()
 

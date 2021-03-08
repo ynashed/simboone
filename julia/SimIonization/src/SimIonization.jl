@@ -1,5 +1,5 @@
 import Pkg
-Pkg.activate(@__DIR__)
+Pkg.activate(normpath(joinpath(@__DIR__, "..")))
 Pkg.instantiate()
 
 module SimIonization

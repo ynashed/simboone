@@ -11,7 +11,7 @@ Tested on Ubuntu 20.04 + Julia Version 1.5.3
 ### Usage
 
 ```
-julia julia/SimIonization.jl \
+julia julia/SimIonization/src/SimIonization.jl \
 --data_file path_to_h5_file \
 --lr 0.001 \
 --sample_id 0

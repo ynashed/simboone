@@ -1,3 +1,6 @@
+import Pkg
+Pkg.instantiate()
+
 module SimIonization
 
 @info("Loading Zygote...")

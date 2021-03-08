@@ -4,16 +4,20 @@ Tested on Ubuntu 20.04 + Julia Version 1.5.3
 
 ### Dependencies
 
-So far no external dependencies or Julia packages. Julia Pro recommended.
+- `Zygote` package for automatic differentiation
+- `HDF5` for file I/O
+- `ArgParse` for parsing command line arguments when running as script
 
 ### Usage
 
-In Julia REPL, and from the `julia` subdirectory, run the following:
-
 ```
-include("SimIonization.jl")
-using .SimIonization
-
-SimIonization.simulate(N=20000)
+julia julia/SimIonization.jl \
+--data_file path_to_h5_file \
+--lr 0.001 \
+--sample_id 0
 ```
-This will run the forward model with a `Nx3` randomly initialized matrix.
+
+  - `--data_file` Path to `.h5` data file
+  - `--sample_id` Every `.h5` file has many samples. Pick one of them to test.
+  - `--num_step` Number of optmization steps.
+  - `--lr` Learning rate.

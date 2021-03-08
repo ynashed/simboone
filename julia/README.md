@@ -19,5 +19,5 @@ julia julia/SimIonization.jl \
 
   - `--data_file` Path to `.h5` data file
   - `--sample_id` Every `.h5` file has many samples. Pick one of them to test.
-  - `--num_step` Number of optmization steps.
+  - `--num_step` Number of optimization steps.
   - `--lr` Learning rate.

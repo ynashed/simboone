@@ -44,7 +44,7 @@ function sgd_update!(input::Variables, grads, η)
     input.E .+= η .* -grads.E
     input.x .+= η .* -grads.x
     input.de_dx .+= η .* -grads.de_dx
-    input.de_dx = clamp.(input.de_dx, eps(Float64), typemax(Float64))
+    clamp!(input.de_dx, eps(Float64), typemax(Float64))
 end
 
 function fit(GT; iterations=100, η=0.001)
@@ -102,13 +102,15 @@ function main()
     vox = transpose(reshape(vox, size(vox_attr, 2), :))
     # KH: 100 micron per index, so divide by 100 to turn index=>cm
     # CL: somehow optimization works much better if divided by 100000 (so x coordinates are normalized to be the same value range as energy)
-    gt = forward_model(Variables(vox[:, [4]], vox[:, [1]].*1e-5, vox[:, [5]].*1e-2))
+    E = vox[:, [4]]; x = vox[:, [1]].*1e-5; de_dx = vox[:, [5]].*1e-2;
+    clamp!(de_dx, 0, 0.03)
+    gt = forward_model(Variables(E, x, de_dx))
 
     (vars, losses) = fit(gt, iterations=parsed_args["num_step"], η=parsed_args["lr"])
 
-    println("Energy l2 error: $(norm(vox[:, 4] .- vars.E, 2))")
-    println("Position(x) l2 error: $(norm(vox[:, 1] .- vars.x, 2))")
-    println("de_dx l2 error: $(norm(vox[:, 1] .- vars.x, 2))")
+    println("Energy l2 error: $(norm(E .- vars.E, 2))")
+    println("Position(x) l2 error: $(x .- vars.x, 2))")
+    println("de_dx l2 error: $(norm(de_dx .- vars.de_dx, 2))")
 
     close(fid)
 end

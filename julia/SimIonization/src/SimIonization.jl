@@ -109,7 +109,7 @@ function main()
     (vars, losses) = fit(gt, iterations=parsed_args["num_step"], η=parsed_args["lr"])
 
     println("Energy l2 error: $(norm(E .- vars.E, 2))")
-    println("Position(x) l2 error: $(x .- vars.x, 2))")
+    println("Position(x) l2 error: $(norm(x .- vars.x, 2))")
     println("de_dx l2 error: $(norm(de_dx .- vars.de_dx, 2))")
 
     close(fid)

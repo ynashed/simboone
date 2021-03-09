@@ -99,10 +99,10 @@ function main()
     fid = h5open(parsed_args["data_file"], "r")
     vox_attr = read(fid["vox_attr"])
     vox = read(fid["voxels"])[parsed_args["sample_id"]]
-    vox = transpose(reshape(vox, size(vox_attr, 1), :))
+    vox = transpose(reshape(vox, size(vox_attr, 2), :))
     # KH: 100 micron per index, so divide by 100 to turn index=>cm
     # CL: somehow optimization works much better if divided by 100000 (so x coordinates are normalized to be the same value range as energy)
-    gt = forward_model(Variables(vox[:, 4], vox[:, 1].*1e-5, vox[:, 5].*1e-2))
+    gt = forward_model(Variables(vox[:, [4]], vox[:, [1]].*1e-5, vox[:, [5]].*1e-2))
 
     (vars, losses) = fit(gt, iterations=parsed_args["num_step"], η=parsed_args["lr"])
 

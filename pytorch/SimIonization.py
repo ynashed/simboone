@@ -62,3 +62,34 @@ class SimIonization(torch.nn.Module):
             exit(0)
 
         return torch.cat((x_0.unsqueeze(-1), x_1.unsqueeze(-1), x[:, 2].unsqueeze(-1)), 1)
+
+
+class SimIonizationData(torch.nn.Module):
+    def __init__(self, x):
+        super(SimIonizationData, self).__init__()
+
+        # Known parameters for genearting ground truth output
+        self._density = 1.38    # g/cm^3
+        self._alpha   = 0.847
+        self._beta    = 0.2061
+        self._efield  = 0.500   # V/sm
+        # CL: make life_time the same scale as the other variables so it can be more easily learned
+        self._lifetime = 0.6  # ms
+        self._energy_threshold = 0.06 # MeV threshold to ignore drift
+        self._dedx_threshold   = 0.0001 # MeV/cm threshold to ignore ...
+        self._vdrift  = 0.153812 # cm/us
+
+        # Ground truth x
+        self.x_gt = x
+        self.x_gt.requires_grad = False
+        self.y_gt = self.combine(self.x_gt)
+
+    def combine(self, x):
+        x_0 = x[:,0] * torch.log(self._alpha + self._beta * x[:,2]) / (self._beta * x[:,2])
+        x_1 = x[:,1] * torch.exp( -1. * x[:,1] / self._vdrift / (self._lifetime * 10000))
+        return torch.cat((x_0.unsqueeze(-1), x_1.unsqueeze(-1), x[:, 2].unsqueeze(-1)), 1)
+
+    def forward(self, x):
+        return self.combine(x)
+
+

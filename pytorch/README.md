@@ -15,6 +15,9 @@ pip install -r pytorch/requirements.txt
 
 ### Usage
 
+
+__Optimize Model Parameters__
+
 ```
 python pytorch/invert_model.py \
 --data_file path_to_h5_file \
@@ -32,3 +35,26 @@ python pytorch/invert_model.py \
   - `--opt` Choose optimizer (`adam` with `lr = [0.01, 0.001]` seems to work)
   - `--lr` Learning rate.
   - `--lr_schedule` Learning rate decay schedule. `lineardecay` seems to work.
+
+
+
+__Optimize Input Data__
+
+```
+python pytorch/invert_data.py \
+--data_file path_to_h5_file \
+--scale 0.1 \
+--opt adam \
+--lr 0.0001 \
+--sample_id 0 \
+--num_step 100000
+```
+
+- `--data_file` Path to `.h5` data file
+- `--scale` Scaling factor to inject random noise into the ground truth x (as the initial value for optimization)
+- `--sample_id` Every `.h5` file has many samples. Pick one of them to test.
+- `--num_step` Number of optmization steps.
+- `--print_step` Frequency to print loss.
+- `--opt` Choose optimizer (`adam` with `lr = 0.0001` seems to work)
+- `--lr` Learning rate.
+- `--lr_schedule` Learning rate decay schedule. `lineardecay` seems to work.

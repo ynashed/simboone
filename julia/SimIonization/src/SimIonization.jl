@@ -76,7 +76,7 @@ function parse_commandline()
         "--sample_id"
             help = "Select a detection sample from the data file to test"
             arg_type = Int
-            default = 0
+            default = 1
         "--num_step"
             help = "Number of optimization steps"
             arg_type = Int
@@ -97,8 +97,9 @@ function main()
         println("  $arg  =>  $val")
     end
     fid = h5open(parsed_args["data_file"], "r")
-    vox = fid["voxels"][parsed_args["sample_id"]]
-    @info(vox)
+    vox_attr = read(fid["vox_attr"])
+    vox = read(fid["voxels"])[parsed_args["sample_id"]]
+    vox = transpose(reshape(vox, size(vox_attr, 1), :))
     # KH: 100 micron per index, so divide by 100 to turn index=>cm
     # CL: somehow optimization works much better if divided by 100000 (so x coordinates are normalized to be the same value range as energy)
     gt = forward_model(Variables(vox[:, 4], vox[:, 1].*1e-5, vox[:, 5].*1e-2))

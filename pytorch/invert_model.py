@@ -31,6 +31,7 @@ parser.add_argument('--lr', type=float, default=1e-2,
     help='learning rate')
 parser.add_argument('--lr_schedule', type=str, default='lineardecay', choices=['lineardecay', 'fixed', 'linear1cycledrop', 'linear1cycle'],
     help='learning rate schedule')
+parser.add_argument('--std', type=float, default=0.1, help='learning rate schedule')
 args = parser.parse_args()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -61,12 +62,11 @@ else:
 
     x = torch.tensor(data.astype('f'), requires_grad=False).to(device)
 
-# Create GT output using GT model parameters
-model_gt = SimIonization('generate').to(device)
-y_gt = model_gt(x)
 
-# Create a model that tries to recover the GT model
-model = SimIonization('learn', args.test_case).to(device)
+model = SimIonization(args.test_case, std_in=args.std).to(device)
+
+# Create GT output using GT model parameters
+y_gt = model(x, 'generate')
 
 # Create loss, optimizer, learning rate schedule
 criterion = torch.nn.MSELoss(reduction='sum')
@@ -80,7 +80,7 @@ scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, schedule_func)
 
 # Training loop
 for t in range(args.num_step):
-    y = model(x)
+    y = model(x, 'learn')
 
     loss = criterion(y, y_gt)
     
@@ -91,7 +91,6 @@ for t in range(args.num_step):
     loss.backward()
     optimizer.step()
     scheduler.step()
-
 
 
 print("real        parameters: alpha {:.4f}, beta {:.4f}, vdrift {:.4f}, v_lifetime {:.4f}".format(model._alpha, model._beta, model._vdrift, model._lifetime))

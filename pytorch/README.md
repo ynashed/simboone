@@ -21,6 +21,7 @@ __Optimize Model Parameters__
 ```
 python pytorch/invert_model.py \
 --data_file path_to_h5_file \
+--std 0.1 \
 --opt adam \
 --lr 0.001 \
 --sample_id 0 \
@@ -29,6 +30,7 @@ python pytorch/invert_model.py \
 ```
 
   - `--data_file` Path to `.h5` data file
+  - `--std` Standard deviation to add noise to ground truth parameters
   - `--sample_id` Every `.h5` file has many samples. Pick one of them to test.
   - `--num_step` Number of optmization steps.
   - `--print_step` Frequency to print loss.

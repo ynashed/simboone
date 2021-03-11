@@ -41,6 +41,7 @@ class SimIonization(torch.nn.Module):
         self._i_vdrift = torch.clone(self._v_vdrift).detach()
         self._i_lifetime = torch.clone(self._v_lifetime).detach()
 
+
     def forward(self,x):
         '''
         Input: x tensor w/ shape (N,3) where 3 = (E,x,de/dx)
@@ -51,17 +52,17 @@ class SimIonization(torch.nn.Module):
             x_0 = x[:,0] * torch.log(self._alpha + self._beta * x[:,2]) / (self._beta * x[:,2])
             # apply lifetime
             # CL: scale lifetime back to the correct value range
-            x_1 = x[:,1] * torch.exp( -1. * x[:,1] / self._vdrift / (self._lifetime * 10000))
+            x_0 = x_0 * torch.exp( -1. * x[:,1] / self._vdrift / (self._lifetime * 10000.0))
         elif self._task == 'learn':
             # apply recombination
             x_0 = x[:,0] * torch.log(self._v_alpha + self._v_beta * x[:,2]) / (self._v_beta * x[:,2])
             # apply lifetime
-            x_1 = x[:,1] * torch.exp( -1. * x[:,1] / self._v_vdrift / (self._v_lifetime * 10000))
+            x_0 = x_0 * torch.exp( -1. * x[:,1] / self._v_vdrift / (self._v_lifetime * 10000.0))
         else:
             print('Task {} is invalid'.format(self._task))
             exit(0)
 
-        return torch.cat((x_0.unsqueeze(-1), x_1.unsqueeze(-1), x[:, 2].unsqueeze(-1)), 1)
+        return torch.cat((x_0.unsqueeze(-1), x[:,1].unsqueeze(-1), x[:,2].unsqueeze(-1)), 1)
 
 
 class SimIonizationData(torch.nn.Module):
@@ -86,8 +87,8 @@ class SimIonizationData(torch.nn.Module):
 
     def combine(self, x):
         x_0 = x[:,0] * torch.log(self._alpha + self._beta * x[:,2]) / (self._beta * x[:,2])
-        x_1 = x[:,1] * torch.exp( -1. * x[:,1] / self._vdrift / (self._lifetime * 10000))
-        return torch.cat((x_0.unsqueeze(-1), x_1.unsqueeze(-1), x[:, 2].unsqueeze(-1)), 1)
+        x_0 = x_0 * torch.exp( -1. * x[:,1] / self._vdrift / (self._lifetime * 10000.0))
+        return torch.cat((x_0.unsqueeze(-1), x[:,1].unsqueeze(-1), x[:,2].unsqueeze(-1)), 1)
 
     def forward(self, x):
         return self.combine(x)

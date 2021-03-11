@@ -46,14 +46,15 @@ else:
     f=h5.File(args.data_file, 'r')
     vox = f['voxels'][args.sample_id].reshape(-1,len(f['vox_attr']))
     # KH: 100 micron per index, so divide by 100 to turn index=>cm
-    # CL: somehow optimization works much better if divided by 100000 (so x coordinates are normalized to be the same value range as energy) 
+    # CL: somehow optimization works much better if divided by 10000 (so x coordinates are normalized to be the same value range as energy) 
     data = np.concatenate(
         (np.expand_dims(vox[:, 3], axis=-1),
-         np.expand_dims(vox[:, 0] / 100000.0, axis=-1),
+         np.expand_dims(vox[:, 0] / 10000.0, axis=-1),
          np.expand_dims(vox[:, 4] / 100.0, axis=-1)),
          axis=1)
     # CL: filter out outragous values and inf
-    data = data[data[:, 2] < 3.0 / 100.0]
+    data = data[data[:, 2] < 300. / 100.0]
+    data = data[data[:, 2] > 0.8 / 100.0]
 
     x = torch.tensor(data.astype('f'), requires_grad=False).to(device)
 
@@ -94,8 +95,16 @@ for t in range(args.num_step):
 print('Ground Truth input x:')
 print(model.x_gt)
 print('---------------------------------------------')
+print('End x:')
+print(x_estimate)
+print('---------------------------------------------')
 print('Start x:')
 print(x_start)
 print('---------------------------------------------')
-print('End x:')
-print(x_estimate)
+print('End mean abs diff:')
+print(torch.mean(torch.abs(model.x_gt - x_estimate)))
+print('---------------------------------------------')
+print('Start mean abs diff:')
+print(torch.mean(torch.abs(model.x_gt - x_start)))
+print('---------------------------------------------')
+

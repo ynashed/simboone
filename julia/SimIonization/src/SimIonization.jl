@@ -84,7 +84,7 @@ function parse_commandline()
             default = 20000
         "--lr"
             help = "Step size/Learning rate for optimization"
-            arg_type = Real
+            arg_type = Float64
             default = 1e-4
     end
 

@@ -12,7 +12,7 @@ parser.add_argument('--sample_id', type=int, default=0,
     help='Select a detection sample from the data file to test')
 parser.add_argument('--num_step', type=int, default=2000,
     help='Number of optimization steps')
-parser.add_argument('--print_step', type=int, default=100,
+parser.add_argument('--print_step', type=int, default=500,
     help='Frequence of printing loss')
 parser.add_argument('--N', type=int, default=20000,
     help='Number of points in input')
@@ -49,7 +49,7 @@ if args.use_syn:
 else:
     f=h5.File(args.data_file, 'r')
     vox = f['voxels'][args.sample_id].reshape(-1,len(f['vox_attr']))
-    # KH: 100 micron per index, so divide by 100 to turn index=>cm
+    # KT: 100 micron per index, so divide by 100 to turn index=>cm
     # CL: somehow optimization works much better if divided by 10000 (so x coordinates are normalized to be the same value range as energy) 
     data = np.concatenate(
         (np.expand_dims(vox[:, 3], axis=-1),

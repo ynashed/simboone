@@ -3,7 +3,7 @@ import h5py as h5
 import numpy as np
 
 import torch
-from SimIonization import SimIonizationData
+from SimIonization import SimIonization
 
 parser = argparse.ArgumentParser(description='Inverse model')
 parser.add_argument('--data_file', type=str, default="",
@@ -12,7 +12,7 @@ parser.add_argument('--sample_id', type=int, default=0,
     help='Select a detection sample from the data file to test')
 parser.add_argument('--num_step', type=int, default=2000,
     help='Number of optimization steps')
-parser.add_argument('--print_step', type=int, default=100,
+parser.add_argument('--print_step', type=int, default=500,
     help='Frequence of printing loss')
 parser.add_argument('--N', type=int, default=20000,
     help='Number of points in input')
@@ -45,7 +45,7 @@ if args.use_syn:
 else:
     f=h5.File(args.data_file, 'r')
     vox = f['voxels'][args.sample_id].reshape(-1,len(f['vox_attr']))
-    # KH: 100 micron per index, so divide by 100 to turn index=>cm
+    # KT: 100 micron per index, so divide by 100 to turn index=>cm
     # CL: somehow optimization works much better if divided by 10000 (so x coordinates are normalized to be the same value range as energy) 
     data = np.concatenate(
         (np.expand_dims(vox[:, 3], axis=-1),
@@ -61,9 +61,13 @@ else:
 # Variables for recovering ground truth x
 noise = (np.random.rand(data.shape[0], data.shape[1]) - 0.5) *  args.scale
 x_estimate = torch.from_numpy(data + noise.astype('float32')).to(device).detach().requires_grad_(True)
+x_start = x_estimate.detach().clone()
 
-# Create GT output using GT model parameters
-model = SimIonizationData(x).to(device)
+# Create GT output with GT input data
+model = SimIonization().to(device)
+x_gt = x
+x_gt.requires_grad = False
+y_gt = model(x_gt, 'generate')
 
 # Create loss, optimizer, learning rate schedule
 criterion = torch.nn.MSELoss(reduction='sum')
@@ -75,14 +79,11 @@ else:
 schedule_func = schedule_dict[args.lr_schedule]
 scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, schedule_func)
 
-
-x_start = x_estimate.detach().clone()
-
 # Training loop
 for t in range(args.num_step):
-    y_estimate = model(x_estimate)
+    y_estimate = model(x_estimate, 'generate')
 
-    loss = criterion(y_estimate, model.y_gt)
+    loss = criterion(y_estimate, y_gt)
 
     if t % args.print_step == args.print_step - 1 or t == 1:
         print(t, ' loss: ', loss.item(), ' lr: ', scheduler.get_lr()[0])
@@ -93,7 +94,7 @@ for t in range(args.num_step):
     scheduler.step()
 
 print('Ground Truth input x:')
-print(model.x_gt)
+print(x_gt)
 print('---------------------------------------------')
 print('End x:')
 print(x_estimate)
@@ -102,9 +103,9 @@ print('Start x:')
 print(x_start)
 print('---------------------------------------------')
 print('End mean abs diff:')
-print(torch.mean(torch.abs(model.x_gt - x_estimate)))
+print(torch.mean(torch.abs(x_gt - x_estimate)))
 print('---------------------------------------------')
 print('Start mean abs diff:')
-print(torch.mean(torch.abs(model.x_gt - x_start)))
+print(torch.mean(torch.abs(x_gt - x_start)))
 print('---------------------------------------------')
 

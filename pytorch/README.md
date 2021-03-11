@@ -23,7 +23,7 @@ python pytorch/invert_model.py \
 --data_file path_to_h5_file \
 --std 0.1 \
 --opt adam \
---lr 0.001 \
+--lr 0.0001 \
 --sample_id 0 \
 --num_step 10000 \
 --test_case 2
@@ -36,7 +36,7 @@ python pytorch/invert_model.py \
   - `--print_step` Frequency to print loss.
   - `--test_case` We offer three wayss to initalize `_v_alpha` and `_v_beta`. `0`: Non-trainable fixed values. `1`: Uniformed sampled values between [0, 1). `2`: Normal distribution around a handcrafted value.
   - `--use_syn` Use synthetic input data (Uniformed sampled values between [0, 1) for E, x, DE/Dx)
-  - `--opt` Choose optimizer (`adam` with `lr = [0.01, 0.001]` seems to work)
+  - `--opt` Choose optimizer (`adam` with `lr = 0.001` seems to work)
   - `--lr` Learning rate.
   - `--lr_schedule` Learning rate decay schedule. `lineardecay` seems to work.
 
@@ -49,7 +49,7 @@ python pytorch/invert_data.py \
 --data_file path_to_h5_file \
 --scale 0.5 \
 --opt adam \
---lr 0.001 \
+--lr 0.01 \
 --sample_id 0 \
 --num_step 10000
 ```
@@ -59,6 +59,6 @@ python pytorch/invert_data.py \
 - `--sample_id` Every `.h5` file has many samples. Pick one of them to test.
 - `--num_step` Number of optmization steps.
 - `--print_step` Frequency to print loss.
-- `--opt` Choose optimizer (`adam` with `lr = 0.001` seems to work)
+- `--opt` Choose optimizer (`adam` with `lr = 0.01` seems to work)
 - `--lr` Learning rate.
 - `--lr_schedule` Learning rate decay schedule. `lineardecay` seems to work.

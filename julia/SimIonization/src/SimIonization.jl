@@ -12,7 +12,7 @@ g_density           = 1.38      # g/cm^3
 g_alpha             = 0.847
 g_beta              = 0.2061
 g_efield            = 0.500     # V/sm
-g_lifetime          = 0.6       # ms
+g_lifetime          = 6000      # ms
 g_energy_threshold  = 0.06      # MeV threshold to ignore drift
 g_dedx_threshold    = 0.0001    # MeV/cm threshold to ignore ...
 g_vdrift            = 0.153812  # cm/us
@@ -26,12 +26,13 @@ end
 Variables(N) = Variables(rand(N, 1), rand(N, 1), rand(N, 1))
 
 function forward_model(input::Variables)
+    de_dx_scaled = g_beta .* input.de_dx
     # apply recombination
-    x_0 = input.E .* log.(g_alpha .+ g_beta .* input.de_dx) ./ (g_beta .* input.de_dx)
+    x_0 = input.E .* log.(g_alpha .+ de_dx_scaled) ./ de_dx_scaled
     # apply lifetime
-    x_1 = input.x .* exp.( -1. .* input.x ./ g_vdrift / (g_lifetime * 10000))
+    x_0 = x_0 .* exp.( -1. .* input.x ./ g_vdrift / g_lifetime)
 
-    return [x_0 x_1]
+    return x_0
 end
 
 function loss(input::Variables, expected_output)
@@ -100,11 +101,10 @@ function main()
     vox_attr = read(fid["vox_attr"])
     vox = read(fid["voxels"])[parsed_args["sample_id"]]
     vox = transpose(reshape(vox, size(vox_attr, 2), :))
-    # KH: 100 micron per index, so divide by 100 to turn index=>cm
-    # CL: somehow optimization works much better if divided by 100000 (so x coordinates are normalized to be the same value range as energy)
-    E = vox[:, [4]]; x = vox[:, [1]].*1e-5; de_dx = vox[:, [5]].*1e-2;
-    clamp!(de_dx, 0, 0.03)
-    gt = forward_model(Variables(E, x, de_dx))
+
+    E = vox[:, [4]]; x = vox[:, [1]]; de_dx = vox[:, [5]];
+    clamp!(de_dx, 0.8, 300) #KT said that's a good range
+    gt = forward_model(Variables(E, x.*1e-4, de_dx.*1e-2)) #scale x and de_dx
 
     (vars, losses) = fit(gt, iterations=parsed_args["num_step"], η=parsed_args["lr"])
 
